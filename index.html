@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Search Engine</title>
+
+  <title>My Free Search Engine</title>
 
   <style>
     * {
@@ -12,25 +13,24 @@
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #ffffff;
-      color: #202124;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      color: #202124;
     }
 
     .container {
       width: 92%;
-      max-width: 650px;
+      max-width: 700px;
       text-align: center;
     }
 
     h1 {
       font-size: 52px;
-      margin-bottom: 35px;
-      letter-spacing: -2px;
+      margin-bottom: 30px;
     }
 
     .search-box {
@@ -39,7 +39,7 @@
       border: 1px solid #dfe1e5;
       border-radius: 30px;
       padding: 5px 8px 5px 18px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 
     input {
@@ -47,7 +47,7 @@
       border: none;
       outline: none;
       font-size: 18px;
-      padding: 12px;
+      padding: 13px;
     }
 
     button {
@@ -65,8 +65,8 @@
     }
 
     .message {
-      margin-top: 25px;
-      font-size: 16px;
+      margin-top: 20px;
+      font-size: 15px;
     }
 
     @media (max-width: 500px) {
@@ -88,9 +88,11 @@
 <body>
 
   <div class="container">
+
     <h1>My Search</h1>
 
     <form class="search-box" onsubmit="searchWeb(event)">
+
       <input
         type="text"
         id="searchInput"
@@ -98,29 +100,37 @@
         autocomplete="off"
       >
 
-      <button type="submit">Search</button>
+      <button type="submit">
+        Search
+      </button>
+
     </form>
 
     <div class="message" id="message"></div>
+
   </div>
 
   <script>
     function searchWeb(event) {
+
       event.preventDefault();
 
-      const query = document.getElementById("searchInput").value.trim();
+      const input = document.getElementById("searchInput");
+      const message = document.getElementById("message");
+
+      const query = input.value.trim();
 
       if (query === "") {
-        document.getElementById("message").textContent =
-          "Please enter something to search.";
+        message.textContent = "Please enter something to search.";
+        input.focus();
         return;
       }
 
-      const url =
+      const googleURL =
         "https://www.google.com/search?q=" +
         encodeURIComponent(query);
 
-      window.location.href = url;
+      window.location.href = googleURL;
     }
   </script>
 
