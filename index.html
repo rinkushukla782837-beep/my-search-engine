@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>My Free Search Engine</title>
+  <title>GyanKosh - भारत का ज्ञान खोज</title>
 
   <style>
     * {
@@ -14,9 +14,6 @@
     body {
       margin: 0;
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       font-family: Arial, sans-serif;
       background: #ffffff;
       color: #202124;
@@ -24,13 +21,22 @@
 
     .container {
       width: 92%;
-      max-width: 700px;
+      max-width: 800px;
+      margin: 0 auto;
+      padding-top: 12vh;
       text-align: center;
     }
 
     h1 {
       font-size: 52px;
+      margin: 0 0 10px;
+      font-weight: 700;
+    }
+
+    .tagline {
+      color: #5f6368;
       margin-bottom: 30px;
+      font-size: 16px;
     }
 
     .search-box {
@@ -39,7 +45,8 @@
       border: 1px solid #dfe1e5;
       border-radius: 30px;
       padding: 5px 8px 5px 18px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      background: white;
     }
 
     input {
@@ -48,6 +55,7 @@
       outline: none;
       font-size: 18px;
       padding: 13px;
+      min-width: 0;
     }
 
     button {
@@ -64,14 +72,49 @@
       background: #1557b0;
     }
 
-    .message {
-      margin-top: 20px;
+    #message {
+      margin-top: 25px;
+      text-align: left;
+    }
+
+    .result {
+      padding: 18px 5px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .result h3 {
+      margin: 0 0 8px;
+      font-size: 19px;
+    }
+
+    .result h3 a {
+      color: #1a0dab;
+      text-decoration: none;
+    }
+
+    .result p {
+      margin: 0;
+      color: #444;
+      line-height: 1.5;
       font-size: 15px;
     }
 
+    .loading {
+      text-align: center;
+      color: #5f6368;
+    }
+
     @media (max-width: 500px) {
+      .container {
+        padding-top: 8vh;
+      }
+
       h1 {
         font-size: 40px;
+      }
+
+      .search-box {
+        padding-left: 12px;
       }
 
       input {
@@ -79,7 +122,7 @@
       }
 
       button {
-        padding: 10px 16px;
+        padding: 10px 15px;
       }
     }
   </style>
@@ -89,29 +132,33 @@
 
   <div class="container">
 
-    <h1>My Search</h1>
+    <h1>GyanKosh</h1>
+
+    <div class="tagline">
+      ज्ञान खोजिए, जानकारी पाइए
+    </div>
 
     <form class="search-box" onsubmit="searchWeb(event)">
 
       <input
         type="text"
         id="searchInput"
-        placeholder="Search the web..."
+        placeholder="कुछ भी खोजें..."
         autocomplete="off"
       >
 
       <button type="submit">
-        Search
+        खोजें
       </button>
 
     </form>
 
-    <div class="message" id="message"></div>
+    <div id="message"></div>
 
   </div>
 
   <script>
-    function searchWeb(event) {
+    async function searchWeb(event) {
 
       event.preventDefault();
 
@@ -120,17 +167,72 @@
 
       const query = input.value.trim();
 
-      if (query === "") {
-        message.textContent = "Please enter something to search.";
+      if (!query) {
+        message.innerHTML =
+          '<div class="loading">कृपया कुछ खोजें।</div>';
         input.focus();
         return;
       }
 
-      const googleURL =
-        "https://www.google.com/search?q=" +
-        encodeURIComponent(query);
+      message.innerHTML =
+        '<div class="loading">🔎 जानकारी खोजी जा रही है...</div>';
 
-      window.location.href = googleURL;
+      try {
+
+        const response =
+          await fetch("/search?q=" + encodeURIComponent(query));
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Search failed");
+        }
+
+        if (!data.results || data.results.length === 0) {
+
+          message.innerHTML =
+            '<div class="loading">इस खोज के लिए जानकारी नहीं मिली।</div>';
+
+          return;
+        }
+
+        let html = "";
+
+        data.results.forEach(result => {
+
+          const title =
+            result.title || "GyanKosh Result";
+
+          const text =
+            result.text || "";
+
+          const url =
+            result.url || "#";
+
+          html += `
+            <div class="result">
+
+              <h3>
+                <a href="${url}" target="_blank" rel="noopener">
+                  ${title}
+                </a>
+              </h3>
+
+              <p>${text}</p>
+
+            </div>
+          `;
+        });
+
+        message.innerHTML = html;
+
+      } catch (error) {
+
+        message.innerHTML =
+          '<div class="loading">❌ Search में समस्या आ गई। कृपया फिर कोशिश करें।</div>';
+
+        console.error(error);
+      }
     }
   </script>
 
