@@ -8,6 +8,7 @@ DB_NAME = "search.db"
 
 def create_database():
     conn = sqlite3.connect(DB_NAME)
+
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -32,10 +33,11 @@ def crawl(url):
         response = requests.get(
             url,
             headers=headers,
-            timeout=10
+            timeout=15
         )
 
         if response.status_code != 200:
+            print("Page open nahi hua:", response.status_code)
             return []
 
         soup = BeautifulSoup(
@@ -43,7 +45,16 @@ def crawl(url):
             "html.parser"
         )
 
-        title = soup.title.string.strip() if soup.title else ""
+        # Script aur style hata do
+        for tag in soup(["script", "style", "noscript"]):
+            tag.decompose()
+
+        title = ""
+
+        if soup.title:
+            title = soup.title.get_text(
+                strip=True
+            )
 
         content = soup.get_text(
             " ",
@@ -51,10 +62,11 @@ def crawl(url):
         )
 
         conn = sqlite3.connect(DB_NAME)
+
         cursor = conn.cursor()
 
         cursor.execute("""
-            INSERT OR IGNORE INTO pages
+            INSERT OR REPLACE INTO pages
             (url, title, content)
             VALUES (?, ?, ?)
         """, (
@@ -66,18 +78,39 @@ def crawl(url):
         conn.commit()
         conn.close()
 
+        print("Indexed:", title)
+        print("URL:", url)
+
         links = []
 
-        for link in soup.find_all("a", href=True):
-            new_url = urljoin(url, link["href"])
+        for link in soup.find_all(
+            "a",
+            href=True
+        ):
 
-            if urlparse(new_url).scheme in ["http", "https"]:
+            new_url = urljoin(
+                url,
+                link["href"]
+            )
+
+            parsed = urlparse(new_url)
+
+            if parsed.scheme in [
+                "http",
+                "https"
+            ]:
+
                 links.append(new_url)
 
         return links
 
     except Exception as e:
-        print("Error:", e)
+
+        print(
+            "Crawler error:",
+            e
+        )
+
         return []
 
 
@@ -85,11 +118,19 @@ if __name__ == "__main__":
 
     create_database()
 
+    # Testing ke liye ek website
     start_url = "https://example.com"
 
-    print("GyanKosh Crawler started...")
+    print("")
+    print("==============================")
+    print("     GyanKosh Crawler")
+    print("==============================")
+    print("")
 
     links = crawl(start_url)
 
-    print("Page saved!")
-    print("Links found:", len(links))
+    print("")
+    print(
+        "Total links found:",
+        len(links)
+    )
